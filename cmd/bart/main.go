@@ -11,9 +11,10 @@ import (
 const (
 	OK                         int = 0
 	INVALID_COMMAND            int = 1
-	NO_CONFIG_FILE_SPECIFIED   int = 4
-	COULD_NOT_OPEN_CONFIG_FILE int = 8
-	COULD_NOT_SEND_OR_PREVIEW  int = 16
+	NO_CONFIG_FILE_SPECIFIED   int = 3
+	NO_TEMPLATE_FILE_SPECIFIED int = 4
+	COULD_NOT_OPEN_CONFIG_FILE int = 5
+	COULD_NOT_SEND_OR_PREVIEW  int = 6
 )
 
 var send = false
@@ -39,6 +40,11 @@ func main() {
 	if len(configFilename) == 0 {
 		fmt.Println("Config file not specified")
 		os.Exit(NO_CONFIG_FILE_SPECIFIED)
+	}
+
+	if len(templateFilename) == 0 {
+		fmt.Println("Template file not specified")
+		os.Exit(NO_TEMPLATE_FILE_SPECIFIED)
 	}
 
 	c := new(bart.Config)
