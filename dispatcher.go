@@ -5,6 +5,14 @@ import (
 	"io/ioutil"
 )
 
+func mergeMaps(primary map[string]string, secondary map[string]string) {
+	for k, v := range secondary {
+		if _, present := primary[k]; !present {
+			primary[k] = v
+		}
+	}
+}
+
 func ProcessFile(templateFilename string, send bool, c *Config) error {
 	// FIXME: Disentangle this mess
 
@@ -20,11 +28,7 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 		ap.prompt()
 
 		for recipient, context := range c.Recipients {
-			for k, v := range c.GlobalContext {
-				if _, present := context[k]; !present {
-					context[k] = v
-				}
-			}
+			mergeMaps(context, c.GlobalContext)
 
 			email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(data_s).Build(context)
 
@@ -35,11 +39,7 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 		}
 	} else {
 		for recipient, context := range c.Recipients {
-			for k, v := range c.GlobalContext {
-				if _, present := context[k]; !present {
-					context[k] = v
-				}
-			}
+			mergeMaps(context, c.GlobalContext)
 
 			email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(data_s).Build(context)
 
