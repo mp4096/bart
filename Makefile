@@ -16,13 +16,13 @@ xcompile_mac: fetch_dependencies ## Cross-compile for macOS x64
 fetch_dependencies: ## Fetch all dependencies
 	go get -t ./...
 
-fmt: ## Call go fmt in all directories
+fmt: fetch_dependencies ## Call go fmt in all directories
 	go fmt ./...
 
 delete_previews: ## Delete previews
 	find . -type f -name 'bart_preview_*' -delete
 
-vet: ## Call go vet in all directories
+vet: fetch_dependencies ## Call go vet in all directories
 	go vet ./...
 
 release_binaries: ## Compile binaries for Linux, macOS and Windows; generate digests
