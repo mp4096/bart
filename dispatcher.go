@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 )
 
+/// Merge two maps. Key-value pairs from `secondary` are added to primary.
+/// If a key is present in both maps, the `primary`'s value is retained.
 func mergeMaps(primary map[string]string, secondary map[string]string) {
 	for k, v := range secondary {
 		if _, present := primary[k]; !present {
