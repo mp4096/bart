@@ -31,7 +31,7 @@ Your configuration (see below) is defined in `config.bart.yml`.
 To preview the rendered emails, call `bart` without the send `-s` flag:
 
 ```
-$ bart -m template.mustache -c config.bart.yml
+$ bart -t template.mustache -c config.bart.yml
 Hello, Jane Doe
 Send flag not set: opening preview in "chromium-browser"
 Send flag not set: opening preview in "chromium-browser"
@@ -40,7 +40,7 @@ Send flag not set: opening preview in "chromium-browser"
 To send the email, add the send flag `-s`:
 
 ```
-$ bart -m template.mustache -c config.bart.yml -s
+$ bart -t template.mustache -c config.bart.yml -s
 Hello, Jane Doe
 Please enter your credentials for "smtpserver.xyz.com"
 Login: janedoe
