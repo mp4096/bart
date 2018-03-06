@@ -122,7 +122,7 @@ func (e *email) OpenInBrowser(browserName string) error {
 	}
 
 	cmd := exec.Command(browserName, tmpfile.Name())
-	return cmd.Run()
+	return cmd.Start()
 }
 
 func (e *email) GetRecipients() []string {
