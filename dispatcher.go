@@ -10,8 +10,8 @@ import (
 // Matches an underscore at the beginning of the string
 var underscoreRegex = regexp.MustCompile(`^\_`)
 
-/// Merge two maps. Key-value pairs from `secondary` are added to primary.
-/// If a key is present in both maps, the `primary`'s value is retained.
+// mergeMaps merges two maps. Key-value pairs from `secondary` are added to primary.
+// If a key is present in both maps, the `primary`'s value is retained.
 func mergeMaps(primary map[string]string, secondary map[string]string) {
 	for k, v := range secondary {
 		if _, present := primary[k]; !present {
@@ -25,14 +25,14 @@ func checkForSubject(context map[string]string) error {
 	if _, ok := context["subject"]; ok {
 		return nil
 	}
-	return errors.New("No 'subject' tag found. It must be contained in the context.")
+	return errors.New("no 'subject' tag found. It must be contained in the context")
 }
 
 /// Verify a context. No keys beginning with an underscore are allowed.
 func checkForNoUnderscores(context map[string]string) error {
-	for k, _ := range context {
+	for k := range context {
 		if underscoreRegex.MatchString(k) {
-			return errors.New("Tags beginning with an underscore are not allowed.")
+			return errors.New("tags beginning with an underscore are not allowed")
 		}
 	}
 	return nil
@@ -43,7 +43,7 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 	if err != nil {
 		return err
 	}
-	data_s := string(data)
+	dataAsString := string(data)
 
 	ap := new(authPair)
 	if send {
@@ -64,7 +64,7 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 
 		localContext["__subject_encoded__"] = EncodeRfc1342(localContext["subject"])
 
-		email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(data_s).Build(localContext)
+		email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(dataAsString).Build(localContext)
 
 		if send {
 			fmt.Printf("Will send to %v\n", email.GetRecipients())

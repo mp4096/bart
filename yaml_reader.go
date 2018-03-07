@@ -17,6 +17,7 @@ type EmailServer struct {
 	Port     int
 }
 
+// Recipients contains emails and their respective contexts.
 // First map: Emails as keys
 // Second map: Mustache context
 type Recipients map[string]map[string]string
