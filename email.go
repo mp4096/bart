@@ -69,16 +69,18 @@ func (eb *emailBuilder) AddContent(s string) EmailBuilder {
 }
 
 func (eb *emailBuilder) Build(context map[string]string) Email {
-	body := "From: " + EncodeRfc1342(eb.fromName) + "<" + eb.fromEmail + ">\r\n"
-	body += "To: " + eb.toEmail + "\r\n"
-	body += "Subject: {{__subject_encoded__}}\r\n"
-	body += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
-	body += eb.mailText
-	body = mustache.Render(body, context)
+	header := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n"
+	header += "To: " + eb.toEmail + "\r\n"
+	header += "Subject: {{__subject_encoded__}}\r\n"
+	header += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
+	header = mustache.Render(header, context)
+
+	body := mustache.Render(eb.mailText, context)
 
 	e := new(email)
 	e.fromEmail = eb.fromEmail
 	e.toEmails = []string{eb.toEmail, eb.fromEmail}
+	e.header = []byte(header)
 	e.body = []byte(body)
 
 	return e
@@ -93,6 +95,7 @@ type Email interface {
 type email struct {
 	fromEmail string
 	toEmails  []string
+	header    []byte
 	body      []byte
 }
 
@@ -100,14 +103,16 @@ func (e *email) Send(s *EmailServer, ap *authPair) error {
 	serverInfo := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 	auth := smtp.PlainAuth("", ap.login, ap.password, s.Hostname)
 
-	return smtp.SendMail(serverInfo, auth, e.fromEmail, e.toEmails, e.body)
+	return smtp.SendMail(serverInfo, auth, e.fromEmail, e.toEmails, append(e.header, e.body...))
 }
 
 func (e *email) OpenInBrowser(browserName string) error {
 	html := append(
-		[]byte(`<html><head><meta charset="UTF-8"></head>`),
-		e.body...,
+		[]byte(`<html><head><meta charset="UTF-8"></head>\n<pre>`),
+		EscapeAngleBrackets(e.header)...,
 	)
+	html = append(html, []byte(`</pre>\n`)...)
+	html = append(html, e.body...)
 	html = append(html, []byte(`</html>`)...)
 
 	tmpfile, err := ioutil.TempFile(".", "bart_preview_")
