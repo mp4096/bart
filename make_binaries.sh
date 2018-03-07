@@ -17,17 +17,18 @@ rm -f \
 # $1 File to be hashed
 # $2 Target filename
 function generate_digests {
-  local SHA_256_DIGEST=$(sha256sum $1)
-  local SHA_512_DIGEST=$(sha512sum $1)
-  printf '%b\n' >> "$2" \
-    'SHA256 digest:\n' \
-    '```' \
-    "$SHA_256_DIGEST" \
-    '```\n' \
-    'SHA512 digest:\n' \
-    '```' \
-    "$SHA_512_DIGEST" \
-    '```'
+local SHA_256_DIGEST=$(sha256sum $1)
+local SHA_512_DIGEST=$(sha512sum $1)
+cat >> "$2" <<EOF
+SHA256 digest:
+\`\`\`
+$SHA_256_DIGEST
+\`\`\`
+SHA512 digest:
+\`\`\`
+$SHA_512_DIGEST
+\`\`\`
+EOF
 }
 
 cat >> "$RELEASE_INFO" <<EOF
