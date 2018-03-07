@@ -71,7 +71,7 @@ func (eb *emailBuilder) AddContent(s string) EmailBuilder {
 func (eb *emailBuilder) Build(context map[string]string) Email {
 	body := "From: " + eb.fromName + "<" + eb.fromEmail + ">\r\n"
 	body += "To: " + eb.toEmail + "\r\n"
-	body += "Subject: {{subject}}\r\n"
+	body += "Subject: {{__subject_encoded__}}\r\n"
 	body += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
 	body += eb.mailText
 	body = mustache.Render(body, context)

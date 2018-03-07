@@ -62,6 +62,8 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 			return err
 		}
 
+		localContext["__subject_encoded__"] = EncodeRfc1342(localContext["subject"])
+
 		email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(data_s).Build(localContext)
 
 		if send {
