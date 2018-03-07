@@ -1,5 +1,6 @@
 # Bart
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8a1a8929ab934576b6051c2729dc8c3b)](https://app.codacy.com/app/mp4096/bart?utm_source=github.com&utm_medium=referral&utm_content=mp4096/bart&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/mp4096/bart.svg?branch=master)](https://travis-ci.org/mp4096/bart)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mp4096/bart)](https://goreportcard.com/report/github.com/mp4096/bart)
 
