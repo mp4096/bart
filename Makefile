@@ -20,6 +20,7 @@ fetch_dependencies: ## Fetch all dependencies
 
 fmt: fetch_dependencies ## Call go fmt in all directories
 	go fmt ./...
+	gofmt -w -s ./..
 
 delete_previews: ## Delete previews
 	find . -type f -name 'bart_preview_*' -delete
