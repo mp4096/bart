@@ -108,12 +108,12 @@ func (e *email) Send(s *EmailServer, ap *authPair) error {
 
 func (e *email) OpenInBrowser(browserName string) error {
 	html := append(
-		[]byte(`<html><head><meta charset="UTF-8"></head>\n<pre>`),
+		[]byte("<html><head><meta charset=\"UTF-8\"></head>\n<pre>"),
 		EscapeAngleBrackets(e.header)...,
 	)
-	html = append(html, []byte(`</pre>\n`)...)
+	html = append(html, []byte("</pre>\n")...)
 	html = append(html, e.body...)
-	html = append(html, []byte(`</html>`)...)
+	html = append(html, []byte("</html>")...)
 
 	tmpfile, err := ioutil.TempFile(".", "bart_preview_")
 	if err != nil {
