@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"os/exec"
+	"path"
 
 	"github.com/hoisie/mustache"
 	"github.com/howeyc/gopass"
@@ -126,7 +127,7 @@ func (e *email) OpenInBrowser(browserName string) error {
 		return err
 	}
 
-	cmd := exec.Command(browserName, tmpfile.Name())
+	cmd := exec.Command(browserName, path.Join(".", tmpfile.Name()))
 	return cmd.Start()
 }
 
