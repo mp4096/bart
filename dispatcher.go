@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 // Matches an underscore at the beginning of the string
@@ -51,6 +53,7 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 		ap.prompt()
 	}
 
+	var emails []Email
 	for recipient, localContext := range c.Recipients {
 		// Add global context to local context
 		mergeMaps(localContext, c.GlobalContext)
@@ -64,20 +67,23 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 
 		localContext["__subject_encoded__"] = EncodeRfc1342(localContext["subject"])
 
-		email := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(dataAsString).Build(localContext)
+		emails = append(emails, NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(dataAsString).Build(localContext))
+	}
 
+	var result error
+	for _, em := range emails {
 		if send {
-			fmt.Printf("Will send to %v\n", email.GetRecipients())
-			if err := email.Send(&c.EmailServer, ap); err != nil {
-				return err
+			fmt.Printf("Will send to %v\n", em.GetRecipients())
+			if err := em.Send(&c.EmailServer, ap); err != nil {
+				result = multierror.Append(result, err)
 			}
 		} else {
 			fmt.Printf("Send flag not set: opening preview in \"%s\"\n", c.Author.Browser)
-			if err := email.OpenInBrowser(c.Author.Browser); err != nil {
-				return err
+			if err := em.OpenInBrowser(c.Author.Browser); err != nil {
+				result = multierror.Append(result, err)
 			}
 		}
 	}
 
-	return nil
+	return result
 }
