@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/smtp"
+	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 
 	"github.com/hoisie/mustache"
 	"github.com/howeyc/gopass"
@@ -127,7 +128,14 @@ func (e *email) OpenInBrowser(browserName string) error {
 		return err
 	}
 
-	cmd := exec.Command(browserName, path.Join(".", tmpfile.Name()))
+	oldFilename, err := filepath.Abs(filepath.Join(".", tmpfile.Name()))
+	if err != nil {
+		return err
+	}
+	newFilename := oldFilename + ".html"
+	os.Rename(oldFilename, newFilename)
+
+	cmd := exec.Command(browserName, newFilename)
 	return cmd.Start()
 }
 
