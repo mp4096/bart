@@ -71,6 +71,8 @@ func (eb *emailBuilder) AddContent(s string) EmailBuilder {
 }
 
 func (eb *emailBuilder) Build(context map[string]string) (Email, error) {
+	mustache.AllowMissingVariables = false
+
 	headerTemplate := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n"
 	headerTemplate += "To: " + eb.toEmail + "\r\n"
 	headerTemplate += "Subject: {{__subject_encoded__}}\r\n"
