@@ -67,7 +67,11 @@ func ProcessFile(templateFilename string, send bool, c *Config) error {
 
 		localContext["__subject_encoded__"] = EncodeRfc1342(localContext["subject"])
 
-		emails = append(emails, NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(dataAsString).Build(localContext))
+		em, err := NewEmail().AddAuthor(&c.Author).AddRecipient(recipient).AddContent(dataAsString).Build(localContext)
+		if err != nil {
+			return err
+		}
+		emails = append(emails, em)
 	}
 
 	var result error

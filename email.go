@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/hoisie/mustache"
+	"github.com/cbroglie/mustache"
 	"github.com/howeyc/gopass"
 )
 
@@ -36,7 +36,7 @@ type EmailBuilder interface {
 	AddAuthor(*Author) EmailBuilder
 	AddRecipient(string) EmailBuilder
 	AddContent(string) EmailBuilder
-	Build(map[string]string) Email
+	Build(map[string]string) (Email, error)
 }
 
 // Email builder struct containing all the nitty-gritty details and subfields of our custom email
@@ -70,14 +70,21 @@ func (eb *emailBuilder) AddContent(s string) EmailBuilder {
 	return eb
 }
 
-func (eb *emailBuilder) Build(context map[string]string) Email {
-	header := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n"
-	header += "To: " + eb.toEmail + "\r\n"
-	header += "Subject: {{__subject_encoded__}}\r\n"
-	header += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
-	header = mustache.Render(header, context)
+func (eb *emailBuilder) Build(context map[string]string) (Email, error) {
+	headerTemplate := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n"
+	headerTemplate += "To: " + eb.toEmail + "\r\n"
+	headerTemplate += "Subject: {{__subject_encoded__}}\r\n"
+	headerTemplate += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
 
-	body := mustache.Render(eb.mailText, context)
+	header, err := mustache.Render(headerTemplate, context)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := mustache.Render(eb.mailText, context)
+	if err != nil {
+		return nil, err
+	}
 
 	e := new(email)
 	e.fromEmail = eb.fromEmail
@@ -85,7 +92,7 @@ func (eb *emailBuilder) Build(context map[string]string) Email {
 	e.header = []byte(header)
 	e.body = []byte(body)
 
-	return e
+	return e, nil
 }
 
 type Email interface {
