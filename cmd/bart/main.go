@@ -20,6 +20,8 @@ var send = false
 var fs = flag.NewFlagSet("bart", flag.ExitOnError)
 var configFilename = ""
 var templateFilename = ""
+var revision = "undefined revision"
+var buildTime = "undefined build time"
 
 func init() {
 	fs.BoolVar(&send, "s", false, "Send emails; dry run otherwise")
@@ -29,8 +31,7 @@ func init() {
 
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Println("bart sends templated emails for you")
-		fmt.Println("Run bart -h for help")
+		printHelp()
 		os.Exit(ok)
 	}
 
@@ -61,4 +62,10 @@ func main() {
 		fmt.Println(err)
 		os.Exit(couldNotSendOrPreview)
 	}
+}
+
+func printHelp() {
+	fmt.Println("bart (" + buildTime + " " + revision + ")")
+	fmt.Println("bart sends templated emails for you")
+	fmt.Println("Run bart -h for help")
 }
