@@ -37,6 +37,6 @@ func EncodeRfc1342(someString string) string {
 // EscapeHtmlCharacters escapes angle brackets and ampersand for HTML
 func EscapeHtmlCharacters(someBytes []byte) []byte {
 	escaped := bytes.Replace(someBytes, []byte("&"), []byte("&amp;"), -1)
-	escaped = bytes.Replace(someBytes, []byte("<"), []byte("&lt;"), -1)
+	escaped = bytes.Replace(escaped, []byte("<"), []byte("&lt;"), -1)
 	return bytes.Replace(escaped, []byte(">"), []byte("&gt;"), -1)
 }
