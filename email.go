@@ -10,6 +10,7 @@ import (
 
 	"github.com/cbroglie/mustache"
 	"github.com/howeyc/gopass"
+	"github.com/jaytaylor/html2text"
 )
 
 type authPair struct {
@@ -73,17 +74,24 @@ func (eb *emailBuilder) AddContent(s string) EmailBuilder {
 func (eb *emailBuilder) Build(context map[string]string) (Email, error) {
 	mustache.AllowMissingVariables = false
 
-	headerTemplate := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n"
-	headerTemplate += "To: " + eb.toEmail + "\r\n"
-	headerTemplate += "Subject: {{__subject_encoded__}}\r\n"
-	headerTemplate += "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
+	headerTemplate := "From: " + EncodeRfc1342(eb.fromName) + " <" + eb.fromEmail + ">\r\n" +
+		"To: " + eb.toEmail + "\r\n" +
+		"Subject: {{__subject_encoded__}}\r\n" +
+		"MIME-version: 1.0;\r\n" +
+		"Content-Type: multipart/alternative;\r\n" +
+		"\tboundary=\"" + boundary + "\"\r\n\r\n"
 
 	header, err := mustache.Render(headerTemplate, context)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := mustache.Render(eb.mailText, context)
+	partHtml, err := mustache.Render(eb.mailText, context)
+	if err != nil {
+		return nil, err
+	}
+
+	partText, err := html2text.FromString(partHtml, html2text.Options{PrettyTables: true})
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +99,8 @@ func (eb *emailBuilder) Build(context map[string]string) (Email, error) {
 	e := new(email)
 	e.fromEmail = eb.fromEmail
 	e.toEmails = []string{eb.toEmail, eb.fromEmail}
-	e.header = []byte(header)
-	e.body = []byte(body)
+	e.header = emailHeader{header}
+	e.items = []mimepart{&textHtml{partHtml}, &textPlain{partText}}
 
 	return e, nil
 }
@@ -106,26 +114,31 @@ type Email interface {
 type email struct {
 	fromEmail string
 	toEmails  []string
-	header    []byte
-	body      []byte
+	header    emailHeader
+	items     []mimepart
 }
 
 func (e *email) Send(s *EmailServer, ap *authPair) error {
 	serverInfo := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 	auth := smtp.PlainAuth("", ap.login, ap.password, s.Hostname)
 
-	return smtp.SendMail(serverInfo, auth, e.fromEmail, e.toEmails, append(e.header, e.body...))
+	m := e.header.asPlainBytes()
+	for i := 0; i < len(e.items); i++ {
+		m = append(m, e.items[i].asBase64()...)
+	}
+	m = append(m, footerAsPlainBytes()...)
+	return smtp.SendMail(serverInfo, auth, e.fromEmail, e.toEmails, m)
 }
 
 func (e *email) OpenInBrowser(browserName string) error {
-	html := append(
-		[]byte("<html><head><meta charset=\"UTF-8\"></head>\n<pre>"),
-		EscapeAngleBrackets(e.header)...,
-	)
-	html = append(html, []byte("</pre>\n")...)
-	html = append(html, e.body...)
-	html = append(html, []byte("</html>")...)
+	// Create an HTML view of the email
+	html := e.header.asHtml()
+	for i := 0; i < len(e.items); i++ {
+		html = append(html, e.items[i].asHtml()...)
+	}
+	html = append(html, footerAsHtml()...)
 
+	// Create a temp file and write the email to it
 	tmpfile, err := ioutil.TempFile(".", "bart_preview_")
 	if err != nil {
 		return err
@@ -137,6 +150,7 @@ func (e *email) OpenInBrowser(browserName string) error {
 		return err
 	}
 
+	// Rename the file
 	oldFilename, err := filepath.Abs(filepath.Join(".", tmpfile.Name()))
 	if err != nil {
 		return err
@@ -144,6 +158,7 @@ func (e *email) OpenInBrowser(browserName string) error {
 	newFilename := oldFilename + ".html"
 	os.Rename(oldFilename, newFilename)
 
+	// Open it in browser
 	cmd := exec.Command(browserName, newFilename)
 	return cmd.Start()
 }
